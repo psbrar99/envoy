@@ -126,8 +126,8 @@ REPOSITORY_LOCATIONS_SPEC = dict(
         # When this is updated to a revision newer than 2022-08-12,
         # CertValidatorUtil::setIgnoreCertificateExpiration can be simplified.
         version = "fips-20190808",
-        sha256 = "3b5fdf23274d4179c2077b5e8fa625d9debd7a390aac1d165b7e47234f648bb8",
-        urls = ["https://commondatastorage.googleapis.com/chromium-boringssl-fips/boringssl-ae223d6138807a13006342edfeef32e813246b39.tar.xz"],
+        sha256 = "a4d069ccef6f3c7bc0c68de82b91414f05cb817494cd1ab483dcf3368883c7c2",
+        urls = ["https://commondatastorage.googleapis.com/chromium-boringssl-fips/boringssl-853ca1ea1168dff08011e5d42d94609cc0ca2e27.tar.xz"],
         use_category = ["controlplane", "dataplane_core"],
         release_date = "2019-08-08",
         cpe = "cpe:2.3:a:google:boringssl:*",

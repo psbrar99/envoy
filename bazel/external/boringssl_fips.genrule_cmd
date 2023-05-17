@@ -6,10 +6,6 @@ set -e
 # https://csrc.nist.gov/CSRC/media/projects/cryptographic-module-validation-program/documents/security-policies/140sp3678.pdf
 
 # This works only on Linux-x86_64.
-if [[ `uname` != "Linux" || `uname -m` != "x86_64" ]]; then
-  echo "ERROR: BoringSSL FIPS is currently supported only on Linux-x86_64."
-  exit 1
-fi
 
 # Bazel magic.
 # ROOT=$(dirname $(rootpath boringssl/BUILDING.md))/..
@@ -22,69 +18,57 @@ pushd "$ROOT"
 # - Ninja build system version 1.9.0 (https://github.com/ninja-build/ninja/releases)
 
 # Override $PATH for build tools, to avoid picking up anything else.
-export PATH="$(dirname `which cmake`):/usr/bin:/bin"
 
-# Clang 7.0.1
-VERSION=7.0.1
-SHA256=02ad925add5b2b934d64c3dd5cbd1b2002258059f7d962993ba7f16524c3089c
-PLATFORM="x86_64-linux-gnu-ubuntu-16.04"
 
-curl -sLO https://releases.llvm.org/"$VERSION"/clang+llvm-"$VERSION"-"$PLATFORM".tar.xz \
-  && echo "$SHA256" clang+llvm-"$VERSION"-"$PLATFORM".tar.xz | sha256sum --check
-tar xf clang+llvm-"$VERSION"-"$PLATFORM".tar.xz
+# Build tools requirements:
+# - Clang compiler version 7.0.1 (https://releases.llvm.org/download.html)
+# - Go programming language version 1.12.7 (https://golang.org/dl/)
+# - Ninja build system version 1.9.0 (https://github.com/ninja-build/ninja/releases)
 
+# Override $PATH for build tools, to avoid picking up anything else.
+
+# Clang 14.0
+which clang
+apt-get update && apt-get remove -y clang-14
+rm -rf /usr/local/bin/clang
+ClangV=12
+curl -sLO https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/clang+llvm-12.0.0-aarch64-linux-gnu.tar.xz
+tar -xvf clang+llvm-12.0.0-aarch64-linux-gnu.tar.xz
 export HOME="$PWD"
 printf "set(CMAKE_C_COMPILER \"clang\")\nset(CMAKE_CXX_COMPILER \"clang++\")\n" > ${HOME}/toolchain
-export PATH="$PWD/clang+llvm-$VERSION-$PLATFORM/bin:$PATH"
+export PATH="$PWD/clang+llvm-12.0.0-aarch64-linux-gnu/bin:$PATH"
 
-if [[ `clang --version | head -1 | awk '{print $3}'` != "$VERSION" ]]; then
-  echo "ERROR: Clang version doesn't match."
-  exit 1
-fi
+NinjaV=1.10.2
+NinjaH=ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed
+wget https://github.com/ninja-build/ninja/archive/refs/tags/v$NinjaV.tar.gz && \
+echo "$NinjaH v$NinjaV.tar.gz" >sha && sha256sum -c sha && \
+tar -xzf v$NinjaV.tar.gz && \
+rm v$NinjaV.tar.gz && \
+cd ninja-$NinjaV && \
+CC=clang-$ClangV CXX=clang++ ./configure.py --bootstrap && \
+mv ninja /usr/local/bin/
+cd ..
+
 
 # Go 1.12.7
-VERSION=1.12.7
-SHA256=66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
-PLATFORM="linux-amd64"
+GoV=1.16.5
+GoHarm64=d5446b46ef6f36fdffa852f73dfbbe78c1ddf010b99fa4964944b9ae8b4d6799
+GOARCH=arm64
+wget https://golang.org/dl/go$GoV.linux-$GOARCH.tar.gz
+tar -C /usr/local -xzf go$GoV.linux-$GOARCH.tar.gz
+export GOROOT=/usr/local/go
+export PATH="$GOROOT/bin:$PATH
 
-curl -sLO https://dl.google.com/go/go"$VERSION"."$PLATFORM".tar.gz \
-  && echo "$SHA256" go"$VERSION"."$PLATFORM".tar.gz | sha256sum --check
-tar xf go"$VERSION"."$PLATFORM".tar.gz
-
-export GOPATH="$PWD/gopath"
-export GOROOT="$PWD/go"
-export PATH="$GOPATH/bin:$GOROOT/bin:$PATH"
-
-if [[ `go version | awk '{print $3}'` != "go$VERSION" ]]; then
-  echo "ERROR: Go version doesn't match."
-  exit 1
-fi
-
-# Ninja 1.9.0
-VERSION=1.9.0
-SHA256=1b1235f2b0b4df55ac6d80bbe681ea3639c9d2c505c7ff2159a3daf63d196305
-PLATFORM="linux"
-
-curl -sLO https://github.com/ninja-build/ninja/releases/download/v"$VERSION"/ninja-"$PLATFORM".zip \
-  && echo "$SHA256" ninja-"$PLATFORM".zip | sha256sum --check
-unzip -o ninja-"$PLATFORM".zip
-
-export PATH="$PWD:$PATH"
-
-if [[ `ninja --version` != "$VERSION" ]]; then
-  echo "ERROR: Ninja version doesn't match."
-  exit 1
-fi
-
-# Clean after previous build.
 rm -rf boringssl/build
 
 # Build BoringSSL.
 cd boringssl
+perl -p -i -e 's/defined.*ELF.*defined.*GNUC.*/$0 \&\& !defined(GOBORING)/' crypto/mem.c
+printf "set(CMAKE_C_COMPILER \"clang\")\nset(CMAKE_CXX_COMPILER \"clang++\")\n" >${HOME}/toolchain
 mkdir build && cd build && cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=${HOME}/toolchain -DFIPS=1 -DCMAKE_BUILD_TYPE=Release ..
 ninja
 ninja run_tests
-
+./crypto/crypto_test
 # Verify correctness of the FIPS build.
 if [[ `tool/bssl isfips` != "1" ]]; then
   echo "ERROR: BoringSSL tool didn't report FIPS build."
