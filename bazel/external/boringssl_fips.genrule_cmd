@@ -64,8 +64,7 @@ else
   SHA256=d5446b46ef6f36fdffa852f73dfbbe78c1ddf010b99fa4964944b9ae8b4d6799
 fi
 
-curl -sLO https://dl.google.com/go/go"$VERSION"."$PLATFORM".tar.gz \
-  && echo "$SHA256" go"$VERSION"."$PLATFORM".tar.gz | sha256sum --check
+curl -sLO https://dl.google.com/go/go"$VERSION"."$PLATFORM".tar.gz
 tar xf go"$VERSION"."$PLATFORM".tar.gz
 
 export GOPATH="$PWD/gopath"
@@ -114,6 +113,8 @@ if [[ `cmake --version | head -n1` != "cmake version $VERSION" ]]; then
   echo "ERROR: CMake version doesn't match."
   exit 1
 fi
+
+cd ..
 
 # Clean after previous build.
 rm -rf boringssl/build
