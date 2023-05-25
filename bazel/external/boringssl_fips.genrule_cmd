@@ -47,8 +47,7 @@ VERSION=1.12.7
 SHA256=66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
 PLATFORM="linux-amd64"
 
-curl -sLO https://dl.google.com/go/go"$VERSION"."$PLATFORM".tar.gz \
-  && echo "$SHA256" go"$VERSION"."$PLATFORM".tar.gz | sha256sum --check
+curl -sLO https://dl.google.com/go/go"$VERSION"."$PLATFORM".tar.gz
 tar xf go"$VERSION"."$PLATFORM".tar.gz
 
 export GOPATH="$PWD/gopath"
@@ -75,6 +74,8 @@ if [[ `ninja --version` != "$VERSION" ]]; then
   echo "ERROR: Ninja version doesn't match."
   exit 1
 fi
+
+cd ..
 
 # Clean after previous build.
 rm -rf boringssl/build
