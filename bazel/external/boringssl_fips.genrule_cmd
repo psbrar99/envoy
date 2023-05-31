@@ -44,7 +44,7 @@ VERSION=12.0.0
 #curl -sLO https://github.com/llvm/llvm-project/releases/download/llvmorg-"$VERSION"/clang+llvm-"$VERSION"-"$PLATFORM".tar.xz
 #tar xf clang+llvm-"$VERSION"-"$PLATFORM".tar.xz
 
-#export HOME="$PWD"
+export HOME="$PWD"
 printf "set(CMAKE_C_COMPILER \"clang\")\nset(CMAKE_CXX_COMPILER \"clang++\")\n" > ${HOME}/toolchain
 export PATH="/usr/lib/llvm/bin:$PATH"
 echo `clang --version`
