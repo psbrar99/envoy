@@ -5,6 +5,8 @@ set -e
 export CXXFLAGS=''
 export LDFLAGS=''
 
+rm -rf /usr/lib/llvm/* && rm -rf /usr/bin/cmake && rm -rf /usr/bin/ninja
+
 # BoringSSL build as described in the Security Policy for BoringCrypto module (2022-05-06):
 # https://csrc.nist.gov/CSRC/media/projects/cryptographic-module-validation-program/documents/security-policies/140sp4407.pdf
 
