@@ -32,7 +32,7 @@ pushd "$ROOT"
 export PATH="$(dirname `which cmake`):/usr/bin:/bin"
 
 # Clang
-#VERSION=12.0.0
+VERSION=12.0.0
 #if [[ "$ARCH" == "x86_64" ]]; then
 #  PLATFORM="x86_64-linux-gnu-ubuntu-20.04"
 #  SHA256=a9ff205eb0b73ca7c86afc6432eed1c2d49133bd0d49e47b15be59bbf0dd292e
@@ -45,9 +45,9 @@ export PATH="$(dirname `which cmake`):/usr/bin:/bin"
 #tar xf clang+llvm-"$VERSION"-"$PLATFORM".tar.xz
 
 #export HOME="$PWD"
-#printf "set(CMAKE_C_COMPILER \"clang\")\nset(CMAKE_CXX_COMPILER \"clang++\")\n" > ${HOME}/toolchain
-#export PATH="$PWD/clang+llvm-$VERSION-$PLATFORM/bin:$PATH"
-
+printf "set(CMAKE_C_COMPILER \"clang\")\nset(CMAKE_CXX_COMPILER \"clang++\")\n" > ${HOME}/toolchain
+export PATH="/usr/lib/llvm/bin:$PATH"
+echo `clang --version`
 if [[ `clang --version | head -1 | awk '{print $3}'` != "$VERSION" ]]; then
   echo `clang --version`
   echo "ERROR: Clang version doesn't match."
